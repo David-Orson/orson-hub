@@ -1,0 +1,45 @@
+version: "3"
+
+services:
+  hub-angular:
+    image: "orsondc/hub-angular"
+    container_name: "hub-angular"
+    restart: always
+    expose:
+      - 80
+    environment:
+      VIRTUAL_HOST: orsonhub.com
+      LETSENCRYPT_HOST: orsonhub.com
+
+  hub-api:
+    image: "orsondc/hub-api"
+    container_name: "hub-api"
+    restart: always
+    expose:
+      - "3000"
+    depends_on:
+      - "hub-postgres"
+    environment:
+      VIRTUAL_PORT: 3000
+      DATABASE_URL: postgresql://postgres:OrsonDC@hub-postgres/orson-hub
+      VIRTUAL_HOST: api.orsonhub.com
+      LETSENCRYPT_HOST: api.orsonhub.com
+
+  hub-postgres:
+    image: "orsondc/hub-postgres"
+    shm_size: 1g
+    container_name: "hub-postgres"
+    restart: always
+    expose: [ "5432" ]
+    volumes:
+      - hub_postgis_data:/var/lib/postgresql
+    ports:
+      - '15432:5432'
+
+networks:
+  default:
+    external:
+      name: nginx-proxy
+
+volumes:
+  hub_postgis_data:
